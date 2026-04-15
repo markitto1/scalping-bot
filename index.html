@@ -2,1457 +2,6 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Scalping Bot v2 — 50 Estrategias · Multi-Crypto</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: #0a0e1a;
-  color: #e2e8f0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 13px;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* ── LOADING ── */
-#loading {
-  position: fixed; inset: 0;
-  background: #0a0e1a;
-  z-index: 999;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 20px;
-}
-#ld-logo  { font-size: 48px; }
-#ld-title { font-size: 26px; font-weight: 700; color: #f1f5f9; }
-#ld-sub   { font-size: 13px; color: #64748b; }
-#ld-bw    { width: 480px; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; }
-#ld-b     { height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #06b6d4); transition: width .1s; }
-#ld-s     { font-size: 12px; color: #475569; min-height: 18px; }
-
-/* ── HEADER ── */
-#hdr {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  padding: 0 20px;
-  background: #0f172a;
-  border-bottom: 2px solid #1e293b;
-  height: 52px;
-}
-.h-left   { display: flex; align-items: center; gap: 10px; }
-.h-badge  { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 3px 10px; font-size: 11px; color: #64748b; }
-.h-center { text-align: center; }
-.h-ticker { font-size: 10px; color: #475569; margin-top: 2px; }
-.h-right  { text-align: right; }
-.h-eq     { font-size: 15px; font-weight: 600; }
-.h-time   { font-size: 11px; color: #64748b; margin-top: 2px; }
-.brand    { font-size: 16px; font-weight: 700; color: #f1f5f9; letter-spacing: .5px; }
-
-/* Price ticker strip */
-.price-ticker { display: flex; align-items: center; justify-content: center; gap: 16px; }
-.ticker-item  { display: flex; flex-direction: column; align-items: center; gap: 0; }
-.ticker-sym   { font-size: 9px; color: #475569; text-transform: uppercase; letter-spacing: 1px; }
-.ticker-price { font-size: 13px; font-weight: 700; transition: color .3s; line-height: 1.2; }
-
-/* ── MAIN GRID ── */
-#wrap {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  height: calc(100vh - 52px);
-  overflow: hidden;
-}
-
-/* ── LEADERBOARD ── */
-#lb-panel {
-  border-right: 1px solid #1e293b;
-  display: flex; flex-direction: column;
-  background: #0f172a;
-  overflow: hidden;
-}
-#lb-title {
-  padding: 12px 16px 8px;
-  font-size: 11px; font-weight: 600;
-  color: #64748b; text-transform: uppercase; letter-spacing: 1.5px;
-  border-bottom: 1px solid #1e293b;
-  flex-shrink: 0;
-}
-#lb-cols {
-  display: grid;
-  grid-template-columns: 32px 1fr 70px 46px 54px;
-  padding: 6px 16px;
-  font-size: 10px; color: #475569;
-  text-transform: uppercase; letter-spacing: .8px;
-  border-bottom: 1px solid #1e293b;
-  flex-shrink: 0;
-}
-.lb-col-btn {
-  background: none; border: none; color: #475569;
-  font: inherit; font-size: 10px; text-transform: uppercase; letter-spacing: .8px;
-  cursor: pointer; padding: 0; display: flex; align-items: center; gap: 3px;
-  transition: color .15s;
-}
-.lb-col-btn:hover { color: #94a3b8; }
-.lb-col-btn.active-sort { color: #60a5fa; }
-.lb-col-btn.right { justify-content: flex-end; width: 100%; }
-#lb-list { overflow-y: auto; flex: 1; }
-
-.lb-row {
-  display: grid;
-  grid-template-columns: 32px 1fr 70px 46px 54px;
-  padding: 8px 16px;
-  border-bottom: 1px solid #0f172a;
-  cursor: pointer;
-  align-items: center;
-  transition: background .15s;
-  gap: 4px;
-}
-.lb-row:hover { background: #1e293b; }
-.lb-row.active {
-  background: #1e3a5f;
-  border-left: 3px solid #3b82f6;
-  padding-left: 13px;
-}
-.lb-rank   { font-size: 14px; text-align: center; }
-.lb-info   { min-width: 0; }
-.lb-name   { font-size: 11px; font-weight: 600; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lb-cat    { margin-top: 3px; display: flex; gap: 3px; }
-.lb-num    { font-size: 12px; font-weight: 600; text-align: right; }
-.lb-sub2   { font-size: 10px; text-align: right; color: #475569; margin-top: 1px; }
-
-/* Category chips */
-.chip {
-  display: inline-block; font-size: 9px; font-weight: 600;
-  padding: 1px 5px; border-radius: 3px;
-  text-transform: uppercase; letter-spacing: .5px;
-}
-.chip-EMA       { background: #1e3a5f; color: #60a5fa; }
-.chip-RSI       { background: #2d1b4e; color: #a78bfa; }
-.chip-MACD      { background: #3b2800; color: #fb923c; }
-.chip-BB        { background: #0f2e1e; color: #34d399; }
-.chip-ST        { background: #3b0f0f; color: #f87171; }
-.chip-Candle    { background: #2d2200; color: #fbbf24; }
-.chip-Structure { background: #0f1e3b; color: #38bdf8; }
-
-/* Symbol chips */
-.chip-BTC { background: #2d1500; color: #f97316; }
-.chip-ETH { background: #1a1040; color: #818cf8; }
-.chip-SOL { background: #0f2820; color: #34d399; }
-.chip-BNB { background: #2d2200; color: #fbbf24; }
-.chip-XRP { background: #0a1c2e; color: #38bdf8; }
-
-/* ── RIGHT PANEL ── */
-#right {
-  display: grid;
-  grid-template-rows: auto auto auto 1fr;
-  overflow: hidden;
-  background: #0a0e1a;
-}
-
-/* ── OPEN POSITIONS ── */
-#openpos-wrap {
-  padding: 8px 20px 10px;
-  border-bottom: 1px solid #1e293b;
-  background: #0a0e1a;
-}
-.openpos-title {
-  font-size: 10px; color: #475569;
-  text-transform: uppercase; letter-spacing: 1.5px;
-  margin-bottom: 6px;
-}
-.openpos-cols {
-  display: grid;
-  grid-template-columns: 160px 90px 90px 80px 80px 80px;
-  padding: 4px 0;
-  border-bottom: 1px solid #1e293b;
-  font-size: 10px; color: #475569;
-  text-transform: uppercase; letter-spacing: .4px;
-}
-.openpos-row {
-  display: grid;
-  grid-template-columns: 160px 90px 90px 80px 80px 80px;
-  padding: 5px 0;
-  border-bottom: 1px solid #0f172a;
-  font-size: 11px; align-items: center;
-}
-.openpos-empty {
-  padding: 8px 0;
-  color: #334155;
-  font-size: 11px;
-  font-style: italic;
-}
-
-/* ── ACTIVE STRATEGY CARD ── */
-#active-wrap {
-  padding: 14px 20px 10px;
-  border-bottom: 1px solid #1e293b;
-  background: #0f172a;
-}
-.active-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
-}
-.active-name  { font-size: 18px; font-weight: 700; color: #f1f5f9; }
-.active-meta  { font-size: 12px; color: #64748b; margin-top: 2px; }
-.active-score {
-  text-align: right;
-  background: #1e293b; border-radius: 8px; padding: 6px 14px;
-}
-.active-score-val { font-size: 20px; font-weight: 700; color: #fbbf24; }
-.active-score-lbl { font-size: 10px; color: #64748b; text-transform: uppercase; }
-
-/* KPI boxes */
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.kpi {
-  background: #1e293b; border-radius: 8px; padding: 10px 12px;
-  border: 1px solid #334155;
-}
-.kpi-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 4px; }
-.kpi-value { font-size: 20px; font-weight: 700; line-height: 1; }
-.kpi-sub   { font-size: 10px; color: #475569; margin-top: 3px; }
-
-/* Open position */
-.pos-card {
-  background: #0f2241; border: 1px solid #1d4ed8;
-  border-radius: 8px; padding: 10px 14px;
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  gap: 10px; margin-bottom: 4px;
-}
-.pos-item-label { font-size: 10px; color: #64748b; text-transform: uppercase; }
-.pos-item-val   { font-size: 13px; font-weight: 700; margin-top: 3px; }
-
-/* ── SIGNALS ROW ── */
-#signals-wrap {
-  padding: 10px 20px;
-  border-bottom: 1px solid #1e293b;
-  background: #0a0e1a;
-}
-.signals-title {
-  font-size: 10px; color: #475569;
-  text-transform: uppercase; letter-spacing: 1.5px;
-  margin-bottom: 8px;
-}
-/* Per-symbol signal summary strip */
-.sym-summary {
-  display: flex; gap: 10px; align-items: center;
-  padding: 6px 0 8px;
-  border-bottom: 1px solid #1e293b;
-  margin-bottom: 8px;
-}
-.sym-sum-item {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  flex: 1;
-  background: #0f172a; border: 1px solid #1e293b;
-  border-radius: 6px; padding: 5px 4px;
-}
-.sym-sum-counts { display: flex; gap: 6px; font-size: 12px; font-weight: 700; }
-.sig-empty {
-  color: #334155; font-size: 11px; font-style: italic;
-  padding: 8px 0; grid-column: 1 / -1; text-align: center;
-}
-#sig-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 5px;
-}
-.sig-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
-  border-radius: 6px;
-  padding: 7px 10px;
-}
-.sig-card.buy  { border-color: #166534; background: #052e16; border-left: 3px solid #4ade80; }
-.sig-card.sell { border-color: #991b1b; background: #1c0303; border-left: 3px solid #f87171; }
-.sig-name { font-size: 10px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
-.sig-foot { display: flex; justify-content: space-between; align-items: center; }
-.sig-val  { font-size: 12px; font-weight: 700; }
-.sig-val.buy  { color: #4ade80; }
-.sig-val.sell { color: #f87171; }
-.sig-val.hold { color: #334155; }
-
-/* SL/TP progress bar */
-.pos-progress-wrap { height: 4px; background: #1e293b; border-radius: 2px; margin: 4px 0 0; }
-.pos-progress-bar  { height: 100%; border-radius: 2px; transition: width .3s; }
-
-/* ── HISTORY ── */
-#hist-wrap { padding: 8px 20px; overflow-y: auto; }
-.hist-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px;
-}
-.hist-title { font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 1.5px; }
-.hist-summary { font-size: 11px; color: #64748b; }
-
-.hist-cols {
-  display: grid;
-  grid-template-columns: 90px 150px 90px 90px 75px 60px;
-  padding: 5px 0;
-  border-bottom: 1px solid #1e293b;
-  font-size: 10px; color: #475569;
-  text-transform: uppercase; letter-spacing: .5px;
-}
-.hist-row {
-  display: grid;
-  grid-template-columns: 90px 150px 90px 90px 75px 60px;
-  padding: 6px 0;
-  border-bottom: 1px solid #0f172a;
-  font-size: 11px; align-items: center;
-}
-
-/* ── COLORS ── */
-.green  { color: #4ade80; }
-.red    { color: #f87171; }
-.yellow { color: #fbbf24; }
-.blue   { color: #60a5fa; }
-.muted  { color: #475569; }
-.white  { color: #f1f5f9; }
-</style>
-</head>
-<body>
-
-<!-- ── LOADING ── -->
-<div id="loading">
-  <div id="ld-logo">⚡</div>
-  <div id="ld-title">Scalping Bot v2</div>
-  <div id="ld-sub">50 estrategias · 5× apalancamiento · BTC ETH SOL BNB XRP · 5m · Paper Trading</div>
-  <div id="ld-bw"><div id="ld-b"></div></div>
-  <div id="ld-s">Iniciando...</div>
-</div>
-
-<!-- ── HEADER ── -->
-<div id="hdr">
-  <div class="h-left">
-    <span style="font-size:22px">⚡</span>
-    <div>
-      <div class="brand">Scalping Bot v2</div>
-      <div class="h-badge">50 Estrategias · 5× Leverage · 5 Cryptos · Paper Trading</div>
-    </div>
-  </div>
-  <div class="h-center">
-    <div id="price-ticker" class="price-ticker"></div>
-    <div class="h-ticker">5m · Multi-Crypto · Paper Trading</div>
-  </div>
-  <div class="h-right">
-    <div class="h-eq" id="h-eq">—</div>
-    <div class="h-time" id="h-up">00:00:00 corriendo</div>
-  </div>
-</div>
-
-<!-- ── MAIN ── -->
-<div id="wrap">
-
-  <!-- LEADERBOARD -->
-  <div id="lb-panel">
-    <div id="lb-title">🏆 Ranking de Estrategias</div>
-    <div id="lb-cols">
-      <span></span>
-      <button class="lb-col-btn" onclick="sortBy('name')" id="col-name">Estrategia</button>
-      <button class="lb-col-btn right" onclick="sortBy('capital')" id="col-capital">Capital</button>
-      <button class="lb-col-btn right" onclick="sortBy('wr')" id="col-wr">WR</button>
-      <button class="lb-col-btn right active-sort" onclick="sortBy('score')" id="col-score">Score ▼</button>
-    </div>
-    <div id="lb-list"></div>
-  </div>
-
-  <!-- RIGHT -->
-  <div id="right">
-
-    <!-- ACTIVE CARD -->
-    <div id="active-wrap">
-      <div id="active-card-inner">
-        <div class="active-top">
-          <div>
-            <div class="active-name" id="act-name">—</div>
-            <div class="active-meta" id="act-meta">Esperando datos...</div>
-          </div>
-          <dtn" onclick="sortBy('name')" id="col-name">Estrategia</button>
-      <button class="lb-col-btn right" onclick="sortBy('capital')" id="col-capital">Capital</button>
-      <button class="lb-col-btn right" onclick="sortBy('wr')" id="col-wr">WR</button>
-      <button class="lb-col-btn right active-sort" onclick="sortBy('score')" id="col-score">Score ▼</button>
-    </div>
- �]�YH��[\����]����]����KKH�Q�KO��]�YH��Y�����KKHP�U�H�T�KO��]�YH�X�]�K]ܘ\���]�YH�X�]�KX�\�Z[��\����]��\��H�X�]�K]����]���]��\��H�X�]�K[�[YH�YH�X�[�[YH���%�]���]��\��H�X�]�K[Y]H�YH�X�[Y]H��\�\�[��]�ˋ���]����]���]��\��H�X�]�K\��ܙH���]��\��H�X�]�K\��ܙK]�[�YH�X�\��ܙH���%�]���]��\��H�X�]�K\��ܙK[�����ܙO�]����]����]���]�YH���X�\�]ܘ\���]���]��\��H��K\��ȈYH��K\��ȏ��]��\��H��H���]��\��H��K[X�[���\][�]���]��\��H��K]�[YH�YH��KX�\���%�]���]��\��H��K\�X��YH��KX�\\�X����%�]����]���]��\��H��H���]��\��H��K[X�[���[��]O�]���]��\��H��K]�[YH�YH��K]܈���%�]���]��\��H��K\�X��YH��K]܋\�X����%�]����]���]��\��H��H���]��\��H��K[X�[���ٚ]�X�܏�]���]��\��H��K]�[YHY[�ȈYH��K\����%�]���]��\��H��K\�X��YH��K\�\�X����%�]����]���]��\��H��H���]��\��H��K[X�[���p�X[X�X[�]���]��\��H��K]�[YH�YH��K\�Yȏ��%�]���]��\��H��K\�X��YH��K\�Y�\�X����%�]����]����]����]����]����KKH�S���USӔ�KO��]�YH��[���]ܘ\���]��\��H��[���]]H�YH��[���]]H��'�����X�[ۙ\�X�Y\�\�[��]��8�%�]���]��\��H��[���X��ȏ���[��\��]Y�XO��[����[��[OH�^X[Yێ��Y���[��YO��[����[��[OH�^X[Yێ��Y���X�X[��[����[��[OH�^X[Yێ��Y����������[����[��[OH�^X[Yێ��Y���Z�H�ٚ]��[����[��[OH�^X[Yێ��Y����	O��[����]���]�YH��[���X��H��]��\��H��[���Y[\H���[���X�[ۙ\�X�Y\�\��]���]����]����KKH�QӐS�KO��]�YH��Yۘ[�]ܘ\���]��\��H��Yۘ[�]]H�YH��Yۘ[�]]KY[��'��H�p�X[\�[��]���]���]��\��H��[K\�[[X\�H�YH��[K\�[[X\�H���]���]�YH��Y�YܚY���]����]����KKHT�ԖHKO��]�YH�\�]ܘ\���]��\��H�\�ZXY\����]��\��H�\�]]H��'���\�ܚX[H�\�X�[ۙ\��]���]��\��H�\�\�[[X\�H�YH�\�\�[H���%�]����]���]��\��H�\�X��ȏ���[��ܘO��[����[��\��]Y�XO��[����[��[OH�^X[Yێ��Y���[��YO��[����[��[OH�^X[Yێ��Y����[YO��[����[��[OH�^X[Yێ��Y������[����[��[OH�^X[Yێ��Y���[�]����[����]���]�YH�\�X��H���]����]�����]��KKHܚY�KO���]��KKH�ܘ\KO����ܚ\����8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d����ӑ�Q��8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d8�d��ۜ�ё�H�SP��Έ�Е�T�	�	�UT�	�	���T�	�	Г��T�	�	��T�	�K���	�[I��
-const fpct = v => (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
-const ft   = d => d instanceof Date
-  ? d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit', second:'2-digit'})
-  : '--:--:--';
-const fd   = d => d instanceof Date
-  ? d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})
-  : '--/--';
-const fPrice = p => {
-  if (!p) return '$—';
- 2if (p >= 10000) return '$' + Math.round(p).toLocaleString('en-US');
-  if (p >= 1000)  return '$' + p.toFixed(1);
-  if (p >= 10)    return '$' + p.toFixed(2);
-  if (p >= 1)     return '$' + p.toFixed(4);
-  return '$' + p.toFixed(5);
-};
-const fTicker = p => {
-  if (!p) return '—';
-  if (p >= 1000) return '$' + (p / 1000).toFixed(1) + 'k';
-  if (p >= 10)  return '$' + p.toFixed(2);
-  if (p >= 1)   return '$' + p.toFixed(4);
-  return '$' + p.toFixed(5);
-};
-
-// ═══════════════════════════════════════════
-//  INDICATORS
-// ═══════════════════════════════════════════
-function emaArr(src, p) {
-  const k = 2 / (p + 1), out = new Array(src.length);
-  out[0] = src[0] || 0;
-  for (let i = 1; i < src.length; i++) out[i] = src[i] * k + out[i-1] * (1 - k);
-  return out;
-}
-
-function rsiArr(cl, p) {
-  const out = new Array(cl.length).fill(50);
-  if (cl.length <= p) return out;
-  let ag = 0, al = 0;
-  for (let i = 1; i <= p; i++) { const d = cl[i] - cl[i-1]; d > 0 ? ag += d : al -= d; }
-  ag /= p; al /= p;
-  out[p] = al === 0 ? 100 : 100 - 100 / (1 + ag / al);
-  for (let i = p + 1; i < cl.length; i++) {
-    const d = cl[i] - cl[i-1], g = d > 0 ? d : 0, l = d < 0 ? -d : 0;
-    ag = (ag * (p-1) + g) / p; al = (al * (p-1) + l) / p;
-    out[i] = al === 0 ? 100 : 100 - 100 / (1 + ag / al);
-  }
-  return out;
-}
-
-function atrArr(kl, p) {
-  const out = new Array(kl.length).fill(0);
-  if (kl.length < 2) return out;
-  let sum = 0, cnt = 0;
-  for (let i = 1; i < Math.min(p, kl.length); i++) {
-    sum += Math.max(kl[i].h - kl[i].l, Math.abs(kl[i].h - kl[i-1].c), Math.abs(kl[i].l - kl[i-1].c));
-    cnt++;
-  }
-  if (cnt === 0) return out;
-  out[cnt] = sum / cnt;
-  for (let i = cnt + 1; i < kl.length; i++) {
-    const tr = Math.max(kl[i].h - kl[i].l, Math.abs(kl[i].h - kl[i-1].c), Math.abs(kl[i].l - kl[i-1].c));
-    out[i] = (out[i-1] * (p-1) + tr) / p;
-  }
-  return out;
-}
-
-function macdCalc(cl, f, s, sg) {
-  const fe = emaArr(cl, f), se = emaArr(cl, s);
-  const ml = fe.map((v, i) => v - se[i]);
-  const sl = emaArr(ml, sg);
-  return { m: ml, s: sl, h: ml.map((v, i) => v - sl[i]) };
-}
-
-function bbArr(cl, p, mult) {
-  const out = new Array(cl.length).fill(null);
-  for (let i = p - 1; i < cl.length; i++) {
-    const sl = cl.slice(i - p + 1, i + 1);
-    const mn = sl.reduce((s, v) => s + v, 0) / p;
-    const std = Math.sqrt(sl.reduce((s, v) => s + (v - mn) ** 2, 0) / p);
-    out[i] = { u: mn + mult * std, m: mn, l: mn - mult * std, std };
-  }
- 2return out;
-}
-
-function stArr(kl, p, mult) {
-  const atr = atrArr(kl, p);
-  const dir = new Array(kl.length).fill(1);
-  const ub  = new Array(kl.length).fill(0);
-  const lb  = new Array(kl.length).fill(0);
-  for (let i = p; i < kl.length; i++) {
-    const hl2 = (kl[i].h + kl[i].l) / 2;
-    const bub = hl2 + mult * atr[i], blb = hl2 - mult * atr[i];
-    ub[i] = (bub < ub[i-1] || kl[i-1].c > ub[i-1]) ? bub : ub[i-1];
-    lb[i] = (blb > lb[i-1] || kl[i-1].c < lb[i-1]) ? blb : lb[i-1];
-    if (dir[i-1] === 1) dir[i] = kl[i].c < lb[i] ? -1 : 1;
-    else dir[i] = kl[i].c > ub[i] ? 1 : -1;
-  }
-  return { dir, ub, lb };
-}
-
-function stochArr(kl, kp, sp) {
-  const raw = [];
-  for (let i = kp - 1; i < kl.length; i++) {
-    const sl = kl.slice(i - kp + 1, i + 1);
-    const hi = Math.max(...sl.map(k => k.h)), lo = Math.min(...sl.map(k => k.l));
-    raw.push(hi === lo ? 50 : (kl[i].c - lo) / (hi - lo) * 100);
-  }
-  return [...Array(kp - 1).fill(50), ...emaArr(raw, sp)];
-}
-
-// Candle helpers
-const cbody = k => Math.abs(k.c - k.o);
-const crange = k => (k.h - k.l) || .001;
-const upW  = k => k.h - Math.max(k.o, k.c);
-const loW  = k => Math.min(k.o, k.c) - k.l;
-const bull = k => k.c > k.o;
-const bear = k => k.c < k.o;
-
-const isHammer    = k => { const b=cbody(k),r=crange(k),lw=loW(k),uw=upW(k); return lw>=2*b&&uw<=b&&b>0&&b/r>.1; };
-const isShootStar = k => { const b=cbody(k),uw=upW(k),lw=loW(k); return uw>=2*b&&lw<=b&&b>0; };
-const isBullEng   = (p,c) => bear(p)&&bull(c)&&c.o<p.c&&c.c>p.o&&cbody(c)>cbody(p);
-const isBearEng   = (p,c) => bull(p)&&bear(c)&&c.o>p.c&&c.c<p.o&&cbody(c)>cbody(p);
-const isPinBull   = k => { const lw=loW(k); return lw>.6*crange(k)&&lw>2*upW(k); };
-const isPinBear   = k => { const uw=upW(k); return uw>.6*crange(k)&&uw>2*loW(k); };
-const isInside    = (p,c) => c.h<=p.h&&c.l>=p.l;
-const isMornStar  = (k1,k2,k3) => bear(k1)&&cbody(k2)<cbody(k1)*.35&&bull(k3)&&k3.c>(k1.o+k1.c)/2;
-const isTweezBot  = (p,c) => Math.abs(p.l-c.l)<crange(p)*.05&&bull(c)&&bear(p);
-const isDoji      = k => cbody(k)<crange(k)*.1&&crange(k)>0;
-
-// ═══════════════════════════════════════════
-//  INDICATOR CACHE (global C set per strategy call)
-// ═══════════════════════════════════════════
-let C = {};
-
-// ═══════════════════════════════════════════
-//  50 ESTRATEGIAS
-//  signal(i) → 1=compra  -1=venta  0=esperar
-//  All reference global C (set to Cmap[st.sym] before each call)
-// ═══════════════════════════════════════════
-const STRATS = [
-// EMA (1-12)
-{id:1,name:'EMA 3/8 Ultra',cat:'EMA',signal(i){
-  if(i<10)return 0;
-  const[a,b,pa,pb]=[C.e3[i],C.e8[i],C.e3[i-1],C.e8[i-1]];
-  return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
-}},
-{id:2,name:'EMA 5/13 Fast',cat:'EMA',signal(i){
-  if(i<15)return 0;
-  const[a,b,pa,pb]=[C.e5[i],C.e13[i],C.e5[i-1],C.e13[i-1]];
-  return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
-}},
-{id:3,name:'EMA 8/21',cat:'EMA',signal(i){
-  if(i<25)return 0;
-  const[a,b,pa,pb]=[C.e8[i],C.e21[i],C.e8[i-1],C.e21[i-1]];
-  return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
-}},
-{id:4,name:'EMA 9/21 Clásica',cat:'EMA',signal(i){
-  if(i<25)return 0;
-  const[a,b,pa,pb]=[C.e9[i],C.e21[i],C.e9[i-1],C.e21[i-1]];
-  return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
-}},
-{id:5,name:'EMA 10/20',cat:'EMA',signal(i){
-  if(i<22)return 0;
-  const[a,b,pa,pb]=[C.e10[i],C.e20[i],C.e10[i-1],C.e20[i-1]];
-  return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
-}},
-{id:6,name:'EMA 13/34 Fib',cat:'EMA',signal(i){
-  if(i<36)return 0;
- 2const[a,b,pa,pb]=[C.e13[i],C.e34[i],C.e13[i-1],C.e34[i-1]];
-  return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
-}},
-{id:7,name:'EMA 21/55',cat:'EMA',signal(i){
-  if(i<58)return 0;
-  const[a,b,pa,pb]=[C.e21[i],C.e55[i],C.e21[i-1],C.e55[i-1]];
-  return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
-}},
-{id:8,name:'EMA Triple 5/10/20',cat:'EMA',signal(i){
-  if(i<22)return 0;
-  const[e5,e10,e20,pe5,pe10]=[C.e5[i],C.e10[i],C.e20[i],C.e5[i-1],C.e10[i-1]];
-  return pe5<=pe10&&e5>e10&&e5>e20?1:pe5>=pe10&&e5<e10&&e5<e20?-1:0;
-}},
-{id:9,name:'EMA Triple 8/13/21',cat:'EMA',signal(i){
-  if(i<23)return 0;
-  const[e8,e13,e21,pe8,pe13]=[C.e8[i],C.e13[i],C.e21[i],C.e8[i-1],C.e13[i-1]];
-  return pe8<=pe13&&e8>e13&&e8>e21&&e13>e21?1:pe8>=pe13&&e8<e13&&e8<e21&&e13<e21?-1:0;
-}},
-{id:10*1.25&&k.c>bb.u)return 1;
-  if(pbw<.018&&bw>pbw*1.25&&k.c<bb.l)return -1;
-  return 0;
-}},
-{id:28,name:'BB + RSI',cat:'BB',signal(i){
-  if(i<22)return 0;
-  const bb=C.bb[i];if(!bb)return 0;
-  const r=C.r14[i],pr=C.r14[i-1],k=C.kl[i];
-  if(k.l<=bb.l&&pr<38&&r>pr)return 1;
-  if(k.h>=bb.u&&r>67)return -1;
-  return 0;
-}},
-{id:29,name:'BB %B',cat:'BB',signal(i){
-  if(i<22)return 0;
-  const bb=C.bb[i],pbb=C.bb[i-1];if(!bb||!pbb)return 0;
-  const bw=bb.u-bb.l||.001,pbw=pbb.u-pbb.l||.001;
-  const pB=(C.cl[i]-bb.l)/bw,ppB=(C.cl[i-1]-pbb.l)/pbw;
-  if(ppB<.2&&pB>ppB&&pB>.3)return 1;
-  if(ppB>.8&&pB<ppB&&pB<.7)return -1;
-  return 0;
-}},
-{id:30,name:'BB Media',cat:'BB',signal(i){
-  if(i<22)return 0;
-  const bb=C.bb[i];if(!bb)return 0;
-  const cl=C.cl[i],pcl=C.cl[i-1];
-  if(pcl<bb.m*.999&&cl>=bb.m)return 1;
-  if(pcl>bb.m*1.001&&cl<=bb.m)return -1;
-  return 0;
-}},
-// SUPERTREND (31-34)
-{id:31,name:'Supertrend 10/2',cat:'ST',signal(i){
-  if(i<15)return 0;
-  const d=C.st1.dir;
-  return d[i-1]!==1&&d[i]===1?1:d[i-1]!==-1&&d[i]===-1?-1:0;
-}},
-{id:32,name:'Supertrend 10/3',cat:'ST',signal(i){
-  if(i<15)return 0;
-  const d=C.st2.dir;
-  return d[i-1]!==1&&d[i]===1?1:d[i-1]!==-1&&d[i]===-1?-1:0;
-}},
-{id:33,name:'Supertrend 7/2',cat:'ST',signal(i){
-  if(i<12)return 0;
-  const d=C.st3.dir;
-  return d[i-1]!==1&&d[i]===1?1:d[i-1]!==-1&&d[i]===-1?-1:0;
-}},
-{id:34,name:'Supertrend + EMA50',cat:'ST',signal(i){
-  if(i<55)return 0;
-  const d=C.st2.dir,e50=C.e50[i];
-  if(d[i-1]!==1&&d[i]===1&&C.cl[i]>e50)return 1;
-  if(d[i-1]!==-1&&d[i]===-1&&C.cl[i]<e50)return -1;
-  return 0;
-}},
-// CANDLESTICK (35-42)
-{id:35,name:'Hammer + EMA',cat:'Candle',signal(i){
-  if(i<52)return 0;
-  const k=C.kl[i],pk=C.kl[i-1],e21=C.e21[i],e50=C.e50[i];
-  if(isHammer(pk)&&k.c>pk.h&&e21>e50)return 1;
-  return 0;
-}},
-{id:36,name:'Shooting Star',cat:'Candle',signal(i){
-  if(i<25)return 0;
-  const k=C.kl[i],pk=C.kl[i-1],e21=C.e21[i];
-  if(isHammer(pk)&&k.c>pk.h&&k.c>e21)return 1;
-  if(isShootStar(pk)&&k.c<pk.l)return -1;
-  return 0;
-}},
-{id:37,name:'Engulfing Alcista',cat:'Candle',signal(i){
-  if(i<52)return 0;
-  const k=C.kl[i],pk=C.kl[i-1],e21=C.e21[i],e50=C.e50[i];
-  if(isBullEng(pk,k)&&e21>e50)return 1;
-  if(isBearEng(pk,k)&&e21<e50)return -1;
-  return 0;
-}},
-{id:38,name:'Pin Bar',cat:'Candle',signal(i){
-  if(i<25)return 0;
-  const k=C.kl[i],e21=C.e21[i],e50=C.e50[i];
-  if(isPinBull(k)&&k.l<e21&&k.c>e21)return 1;
-  if(isPinBear(k)&&k.h>e21&&k.c<e21)return -1;
-  return 0;
-}},
-{id:39,name:'Inside Bar',cat:'Candle',signal(i){
-  if(i<4)return 0;
-  const k=C.kl[i],pk=C.kl[i-1],ppk=C.kl[i-2],e21=C.e21[i];
-  if(isInside(ppk,pk)&&k.c>ppk.h&&k.c>e21)return 1;
-  if(isInside(ppk,pk)&&k.c<ppk.l&&k.c<e21)return -1;
-  return 0;
-}},
-{id:40,name:'Morning Star',cat:'Candle',signal(i){
-  if(i<5)return 0;
-  return isMornStar(C.kl[i-2],C.kl[i-1],C.kl[i])?1:0;
-}},
-{id:41,name:'Tweezer Bottom',cat:'Candle',signal(i){
-  if(i<25)return 0;
-  return isTweezBot(C.kl[i-1],C.kl[i])&&C.kl[i].c>C.e21[i]?1:0;
-}},
-{id:42,name:'Doji + Tendencia',cat:'Candle',signal(i){
-  if(i<25)return 0;
-  const pk=C.kl[i-1],k=C.kl[i],e21=C.e21[i],e50=C.e50[i];
-  if(isDoji(pk)&&bull(k)&&k.c>pk.h&&e21>e50)return 1;
-  if(isDoji(pk)&&bear(k)&&k.c<pk.l&&e21<e50)return -1;
-  return 0;
-}},
-// STRUCTURE (43-50)
-{id:43,name:'Triángulo Asc.',cat:'Structure',signal(i){
-  if(i<30)return 0;
-  const rec=C.kl.slice(i-20,i+1);
-  const hhs=rec.map(k=>k.h),lls=rec.map(k=>k.l);
-  const mxH=Math.max(...hhs),mnH=Math.min(...hhs);
-  const fL=Math.min(...lls.slice(0,5)),lL=Math.min(...lls.slice(-5));
-  return (mxH-mnH)/mxH<.006&&lL>fL*1.002&&C.kl[i].c>mxH*.999?1:0;
-}},
-{id:44,name:'Range Bounce',cat:'Structure',signal(i){
-  if(i<30)return 0;
-  const rec=C.kl.slice(i-20,i);
-  const hi=Math.max(...rec.map(k=>k           .forEach((st, i) => st.rank = i + 1);
-}
-
-function rotateActive() {
-  if (rotCD > 0) { rotCD--; return; }
-  updateScores();
-  const elig = states
-    .filter(st => st.trades.length >= CFG.MIN_TRADES && st.score > 0)
-    .sort((a, b) => b.score - a.score);
-  if (!elig.length) return;
-  const best = elig[0];
-  if (!active || best.id !== active.id) {
-    if (active && active.position) return;
-    active = best;
-    rotCD  = CFG.ROT_CD;
-  }
-}
-
-// ═══════════════════════════════════════════
-//  POSICIONES
-// ═══════════════════════════════════════════
-function equity(st) {
-  if (!st.position) return st.capital;
-  const lp = priceMap[st.sym] || 0;
-  if (!lp) return st.capital + st.position.margin;
-  const p        = st.position;
-  const proceeds = p.qty * lp * (1 - CFG.FEE);
-  const signed   = p.side === 'long' ? 1 : -1;
-  const pnl      = signed * (proceeds - p.cost);
-  return Math.max(0, st.capital + p.margin + pnl);
-}
-
-function openLong(st, price, atr) {
-  if (st.position || atr <= 0) return;
-  const margin   = st.capital;
-  const notional = margin * CFG.LEVERAGE;
-  const qty      = notional / price * (1 - CFG.FEE);
-  const dist     = atr * CFG.ATR_MULT;
-  const liqPrice = price * (1 - 1 / CFG.LEVERAGE * 0.95);
-  st.position = {
-    entry: price, qty, cost: notional, margin, liq: liqPrice,
-    side: 'long',
-    sl: Math.max(price - dist, liqPrice * 1.002),
-    tp: price + dist,
-    entryTime: new Date()
-  };
-  st.capital -= margin;
-}
-
-function openShort(st, price, atr) {
-  if (st.position || atr <= 0) return;
-  const margin   = st.capital;
-  const notional = margin * CFG.LEVERAGE;
-  const qty      = notional / price * (1 - CFG.FEE);
-  const dist     = atr * CFG.ATR_MULT;
-  // Para shorts: liq sube (precio sube → pérdida)
-  const liqPrice = price * (1 + 1 / CFG.LEVERAGE * 0.95);
-  st.position = {
-    entry: price, qty, cost: notional, margin, liq: liqPrice,
-    side: 'short',
-    sl: Math.min(price + dist, liqPrice * 0.998), // SL antes de liq
-    tp: price - dist,                              // TP por debajo de entrada
-    entryTime: new Date()
-  };
-  st.capital -= margin;
-}
-
-function closePos(st, price, reason) {
-  const p      = st.position; if (!p) return;
-  const proceeds = p.qty * price * (1 - CFG.FEE);
-  // For LONG: profit when price rises (proceeds > cost). For SHORT: profit when price falls (cost > proceeds).
-  const signed = p.side === 'long' ? 1 : -1;
-  const pnl    = signed * (proceeds - p.cost);
-  const pct    = pnl / p.margin * 100;
-  st.trades.push({ nm: st.strat.name, sym: st.sym, entry: p.entry, exit: price, side: p.side, pnl, pct, reason, entryTime: p.entryTime, time: new Date() });
-  st.capital += Math.max(0, p.margin + pnl);
-  st.position = null;
-  if (reason === 'sl') st.cooldown = 3;
-}
-
-// ═══════════════════════════════════════════
-//  API BINANCE
-// ═══════════════════════════════════════════
-
-// Batch fetch: one HTTP request for all 5 symbols at once
-async function fetchAllPrices() {
-  const param = encodeURIComponent(JSON.stringify(CFG.SYMBOLS));
-  const r     = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${param}`);
-  const data  = await r.json();
-  data.forEach(d => { priceMap[d.symbol] = parseFloat(d.price); });
-}
-
-async function fetchKlines(sym, limit = 500) {
-  const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${CFG.TF}&limit=${limit}`);
-  return (ap    = priceMap[st.sym] || 0;
-      const cache = Cmap[st.sym];
-      if (!cache || !lp) continue;
-      const i = cache.kl.length - 1;
-      if (i < 1) continue;
-
-      if (st.position) {
-        const p = st.position;
-        if (p.side === 'long') {
-          if (lp <= p.sl) { closePos(st, p.sl, 'sl'); continue; }
-          if (lp >= p.tp) { closePos(st, p.tp, 'tp'); continue; }
-        } else {
-          if (lp >= p.sl) { closePos(st, p.sl, 'sl'); continue; }
-          if (lp <= p.tp) { closePos(st, p.tp, 'tp'); continue; }
-        }
-      }
-      if (st.cooldown > 0) { st.cooldown--; continue; }
-
-      // Set global C to this symbol's cache so signal() functions work unchanged
-      C = cache;
-      let sg = 0;
-      try { sg = st.strat.signal(i); } catch (_) {}
-      st.curSig = sg;
-
-      const atrV = (cache.atr && cache.atr[i]) || 0;
-      if (!st.position) {
-        if (sg ===  1) openLong(st, lp, atrV);
-        if (sg === -1) openShort(st, lp, atrV);
-      } else {
-        // Close on opposite signal
-        if (sg === -1 && st.position.side === 'long')  closePos(st, lp, 'signal');
-        if (sg ===  1 && st.position.side === 'short') closePos(st, lp, 'signal');
-      }
-    }
-    if (sigRound % CFG.ROT_EVERY === 0) rotateActive();
-    renderAll();
-  } catch (e) { console.warn('signalTick', e); }
-  setTimeout(signalTick, CFG.SIGNAL_MS);
-}
-
-// ═══════════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════════
-const medals = ['🥇', '🥈', '🥉'];
-
-function renderPriceTicker() {
-  const el = document.getElementById('price-ticker');
-  if (!el) return;
-  el.innerHTML = CFG.SYMBOLS.map(sym => {
-    const p    = priceMap[sym] || 0;
-    const prev = prevPriceMap[sym] || p;
-    const cls  = p > prev ? 'green' : p < prev ? 'red' : 'white';
-    prevPriceMap[sym] = p;
-    return `<div class="ticker-item">
-      <span class="ticker-sym">${symLabel(sym)}</span>
-      <span class="ticker-price ${cls}">${fTicker(p)}</span>
-    </div>`;
-  }).join('');
-}
-
-// ── Sortable columns ──
-function sortBy(key) {
-  if (lbSortKey === key) {
-    lbSortDir *= -1;
-  } else {
-    lbSortKey = key;
-    lbSortDir = -1;
-  }
-  ['name','capital','wr','score'].forEach(k => {
-    const el = document.getElementById('col-' + k);
-    if (!el) return;
-    el.classList.toggle('active-sort', k === key);
-    const arrow = k === key ? (lbSortDir === -1 ? ' ▼' : ' ▲') : '';
-    const labels = { name:'Estrategia', capital:'Capital', wr:'WR', score:'Score' };
-    el.textContent = labels[k] + arrow;
-  });
-  renderLB();
-}
-
-function getSortedStates() {
-  return [...states].sort((a, b) => {
-    let va, vb;
-    const eq_a = equity(a), eq_b = equity(b);
-    if (lbSortKey === 'name')    { va = a.strat.name; vb = b.strat.name; return lbSortDir * va.localeCompare(vb); }
-    if (lbSortKey === 'capital') { va = eq_a; vb = eq_b; }
-    else if (lbSortKey === 'wr') {
-      va = a.trades.length > 0 ? a.trades.filter(t=>t.pnl>0).length / a.trades.length : -1;
-      vb = b.trades.length > 0 ? b.trades.filter(t=>t.pnl>0).length / b.trades.length : -1;
-    }
-    else { va = a.score; vb = b.score; }
-    return lbSortDir * ((vb - va) || (eq_b - eq_a));
-  });
-}
-
-function renderAll() {
-  renderPriceTicker();
-  renderLB();
-  renderActive();
-  renderOpenPositions();
-  renderSigs();
-  renderHist();
-  renderHdr();
-}
-
-function renderLB() {
-  const sorted = getSortedStates();
-  document.getElementById('lb-list').innerHTML = sorted.map((st, idx) => {
-    const rank   = st.rank || idx + 1;
-    const medal  = rank <= 3 ? medals[rank -   document.getElementById('kpi-wr-sub').textContent  = wins + 'W / ' + (total - wins) + 'L';
-  document.getElementById('kpi-pf').textContent      = pf;
-  document.getElementById('kpi-pf-sub').textContent  = total + ' operaciones';
-  document.getElementById('kpi-sig').innerHTML       = sigTxt;
-  document.getElementById('kpi-sig-sub').textContent = 'Señal actual';
-
-  // Position card
-  if (st.position) {
-    const p        = st.position;
-    const proceeds = p.qty * lp * (1 - CFG.FEE);
-    const signed   = p.side === 'long' ? 1 : -1;
-    const pnlU     = signed * (proceeds - p.cost);
-    const pnlP     = pnlU / p.margin * 100;
-    const pCls     = pnlU >= 0 ? 'green' : 'red';
-    const sideLbl  = p.side === 'long'
-      ? `<span style="color:#4ade80;font-weight:700">LONG</span>`
-      : `<span style="color:#f87171;font-weight:700">SHORT</span>`;
-    document.getElementById('pos-card-wrap').innerHTML = `
-      <div class="pos-card" style="margin-bottom:10px;grid-template-columns:repeat(6,1fr)">
-        <div>
-          <div class="pos-item-label">${sideLbl} <span style="color:#fbbf24;font-weight:700">${CFG.LEVERAGE}×</span></div>
-          <div class="pos-item-val white">${fPrice(p.entry)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">Notional ${fk(p.cost)}</div>
-        </div>
-        <div>
-          <div class="pos-item-label">Margen</div>
-          <div class="pos-item-val yellow">${fk(p.margin)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">Capital en riesgo</div>
-        </div>
-        <div>
-          <div class="pos-item-label">Stop Loss</div>
-          <div class="pos-item-val red">${fPrice(p.sl)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">Liq. ${fPrice(p.liq)}</div>
-        </div>
-        <div>
-          <div class="pos-item-label">Take Profit</div>
-          <div class="pos-item-val green">${fPrice(p.tp)}</div>
-        </div>
-        <div>
-          <div class="pos-item-label">PnL Flotante</div>
-          <div class="pos-item-val ${pCls}" style="font-size:16px">${fpct(pnlP)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">${pnlU >= 0 ? '+' : ''}${fp(pnlU)}</div>
-        </div>
-        <div>
-         2<div class="pos-item-label">Precio actual</div>
-          <div class="pos-item-val white">${fPrice(lp)}</div>
-        </div>
-      </div>`;
-  } else {
-    document.getElementById('pos-card-wrap').innerHTML = '';
-  }
-}
-
-function renderOpenPositions() {
-  const open    = states.filter(st => st.position !== null);
-  const titleEl = document.getElementById('openpos-title');
- 2const bodyEl  = document.getElementById('openpos-body');
-  titleEl.textContent = `📂 Posiciones abiertas en vivo — ${open.length}`;
-
-  if (open.length === 0) {
-    bodyEl.innerHTML = '<div class="openpos-empty">Sin posiciones abiertas</div>';
-    return;
-  }
-
-  // Sort by floating PnL desc
-  const sorted = [...open].sort((a, b) => {
-    const lpA    = priceMap[a.sym] || 0;
-    const lpB    = priceMap[b.sym] || 0;
-    const sgnA   = a.position.side === 'long' ? 1 : -1;
-    const sgnB   = b.position.side === 'long' ? 1 : -1;
-    const pnlA   = sgnA * ((a.position.qty * lpA * (1 - CFG.FEE)) - a.position.cost);
-    const pnlB   = sgnB * ((b.position.qty * lpB * (1 - CFG.FEE)) - b.position.cost);
-    return pnlB - pnlA;
-  });
-
-  bodyEl.innerHTML = sorted.map(st => {
-    const p      = st.position;
-    const lp     = priceMap[st.sym] || 0;
-    const signed = p.side === 'long' ? 1 : -1;
-    const pnlU   = signed * (p.qty * lp * (1 - CFG.FEE) - p.cost);
-    const pnlP   = pnlU / p.margin * 100;
-    const pCls   = pnlU >= 0 ? 'green' : 'red';
-    const isAct  = active && st.id === active.id;
-    const slbl   = sywait r.json()).map(k => ({ t: new Date(k[6]), o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] }));
-}
-function mergeKlines(sym, fresh) {
-  if (!klineMap[sym]) klineMap[sym] = [];
-  const kl   = klineMap[sym];
-  const last = kl.length > 0 ? kl.at(-1).t.getTime() : 0;
-  kl.push(...fresh.filter(k => k.t.getTime() > last));
-  if (kl.length > 1200) klineMap[sym] = kl.slice(-1000);
-}
-
-// ═══════════════════════════════════════════
-//  INDICATOR CACHE (per symbol)
-// ═══════════════════════════════════════════
-function recompute(sym) {
-  const kl = klineMap[sym];
-  if (!kl || kl.length < 5) return;
-  const cl = kl.map(k => k.c);
-  Cmap[sym] = {
-    kl, cl,
-    e3:emaArr(cl,3),   e5:emaArr(cl,5),   e8:emaArr(cl,8),
-    e9:emaArr(cl,9),   e10:emaArr(cl,10), e13:emaArr(cl,13),
-    e20:emaArr(cl,20), e21:emaArr(cl,21), e34:emaArr(cl,34),
-    e50:emaArr(cl,50), e55:emaArr(cl,55), e100:emaArr(cl,100),
-    e200:emaArr(cl,200),
-    r7:rsiArr(cl,7),   r9:rsiArr(cl,9),
-    r14:rsiArr(cl,14), r21:rsiArr(cl,21),
-    ms:macdCalc(cl,12,26,9),
-    mf:macdCalc(cl,8,17,9),
-    bb:bbArr(cl,20,2),
-    atr:atrArr(kl,14),
-    st1:stArr(kl,10,2),
-    st2:stArr(kl,10,3),
-    st3:stArr(kl,7,2),
-    sk:stochArr(kl,14,3),
-    sk9:stochArr(kl,9,3),
-  };
-}
-
-// ═══════════════════════════════════════════
-//  WARMUP
-// ═══════════════════════════════════════════
-async function warmup() {
-  document.getElementById('ld-b').style.width = '80%';
-  document.getElementById('ld-s').textContent = 'Calculando indicadores para 5 criptomonedas...';
-  CFG.SYMBOLS.forEach(sym => recompute(sym));
-  await new Promise(r => setTimeout(r, 200));
-  document.getElementById('ld-b').style.width = '100%';
-  active = states[0];
-}
-
-// ═══════════════════════════════════════════
-//  LOOPS: precio (rápido) + señales (lento)
-// ══════════════════════════════════════════
-
-// Fast loop — updates price ticker every PRICE_MS (2 s)
-async function priceTick() {
-  if (!running) return;
-  try {
-    await fetchAllPrices();   // 1 request for all 5 symbols
-    renderPriceTicker();
-    renderHdr();
-    // Also check SL/TP on open positions with fresh prices (no kline fetch needed)
-    for (const st of states) {
-      const lp = priceMap[st.sym] || 0;
-      if (!lp || !st.position) continue;
-      const p = st.position;
-      if (p.side === 'long') {
-        if (lp <= p.sl) { closePos(st, p.sl, 'sl'); renderAll(); }
-        else if (lp >= p.tp) { closePos(st, p.tp, 'tp'); renderAll(); }
-      } else {
-        // SHORT: SL is above entry, TP is below entry
-        if (lp >= p.sl) { closePos(st, p.sl, 'sl'); renderAll(); }
-        else if (lp <= p.tp) { closePos(st, p.tp, 'tp'); renderAll(); }
-      }
-    }
-  } catch (e) { console.warn('priceTick', e); }
-  setTimeout(priceTick, CFG.PRICE_MS);
-}
-
-// Slow loop — refreshes klines + runs strategy signals every SIGNAL_MS (10 s)
-async function signalTick() {
-  if (!running) return;
-  try {
-    sigRound++;
-    // Refresh last klines for all symbols in parallel
-    try {
-      await Promise.all(CFG.SYMBOLS.map(async sym => {
-        const fresh = await fetchKlines(sym, 10);
-        mergeKlines(sym, fresh);
-        recompute(sym);
-      }));
-    } catch (_) {}
-
-    for (const st of states) {
-      const lt lp    = priceMap[st.sym] || 0;
-      const cache = Cmap[st.sym];
-      if (!cache || !lp) continue;
-      const i = cache.kl.length - 1;
-      if (i < 1) continue;
-
-      if (st.position) {
-        const p = st.position;
-        if (p.side === 'long') {
-          if (lp <= p.sl) { closePos(st, p.sl, 'sl'); continue; }
-          if (lp >= p.tp) { closePos(st, p.tp, 'tp'); continue; }
-        } else {
-          if (lp >= p.sl) { closePos(st, p.sl, 'sl'); continue; }
-          if (lp <= p.tp) { closePos(st, p.tp, 'tp'); continue; }
-        }
-      }
-      if (st.cooldown > 0) { st.cooldown--; continue; }
-
-      // Set global C to this symbol's cache so signal() functions work unchanged
-      C = cache;
-      let sg = 0;
-      try { sg = st.strat.signal(i); } catch (_) {}
-      st.curSig = sg;
-
-      const atrV = (cache.atr && cache.atr[i]) || 0;
-      if (!st.position) {
-        if (sg ===  1) openLong(st, lp, atrV);
-        if (sg === -1) openShort(st, lp, atrV);
-      } else {
-        // Close on opposite signal
-        if (sg === -1 && st.position.side === 'long')  closePos(st, lp, 'signal');
-        if (sg ===  1 && st.position.side === 'short') closePos(st, lp, 'signal');
-      }
-    }
-    if (sigRound % CFG.ROT_EVERY === 0) rotateActive();
-    renderAll();
-  } catch (e) { console.warn('signalTick', e); }
-  setTimeout(signalTick, CFG.SIGNAL_MS);
-}
-
-// ═══════════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════════
-const medals = ['🥇', '🥈', '🥉'];
-
-function renderPriceTicker() {
-  const el = document.getElementById('price-ticker');
-  if (!el) return;
-  el.innerHTML = CFG.SYMBOLS.map(sym => {
-    const p    = priceMap[sym] || 0;
-    const prev = prevPriceMap[sym] || p;
-    const cls  = p > prev ? 'green' : p < prev ? 'red' : 'white';
-    prevPriceMap[sym] = p;
-    return `<div class="ticker-item">
-      <span class="ticker-sym">${symLabel(sym)}</span>
-      <span class="ticker-price ${cls}">${fTicker(p)}</span>
-    </div>`;
-  }).join('');
-}
-
-// ── Sortable columns ──
-function sortBy(key) {
-  if (lbSortKey === key) {
-    lbSortDir *= -1;
-  } else {
-    lbSortKey = key;
-    lbSortDir = -1;
-  }
-  ['name','capital','wr','score'].forEach(k => {
-    const el = document.getElementById('col-' + k);
-    if (!el) return;
-    el.classList.toggle('active-sort', k === key);
-    const arrow = k === key ? (lbSortDir === -1 ? ' ▼' : ' ▲') : '';
-    const labels = { name:'Estrategia', capital:'Capital', wr:'WR', score:'Score' };
-    el.textContent = labels[k] + arrow;
-  });
-  renderLB();
-}
-
-function getSortedStates() {
-  return [...states].sort((a, b) => {
-    let va, vb;
-    const eq_a = equity(a), eq_b = equity(b);
-    if (lbSortKey === 'name')    { va = a.strat.name; vb = b.strat.name; return lbSortDir * va.localeCompare(vb); }
-    if (lbSortKey === 'capital') { va = eq_a; vb = eq_b; }
-    else if (lbSortKey === 'wr') {
-      va = a.trades.length > 0 ? a.trades.filter(t=>t.pnl>0).length / a.trades.length : -1;
-      vb = b.trades.length > 0 ? b.trades.filter(t=>t.pnl>0).length / b.trades.length : -1;
-    }
-    else { va = a.score; vb = b.score; }
-    return lbSortDir * ((vb - va) || (eq_b - eq_a));
-  });
-}
-
-function renderAll() {
-  renderPriceTicker();
-  renderLB();
-  renderActive();
-  renderOpenPositions();
-  renderSigs();
-  renderHist();
-  renderHdr();
-}
-
-function renderLB() {
-  const sorted = getSortedStates();
-  document.getElementById('lb-list').innerHTML = sorted.map((st, idx) => {
-    const rank   = st.rank || idx + 1;
-    const medal  = rank <= 3 ? medals[rank - 1] : rank;
-    const isAct  = active && st.id === active.id;
-    const eq     = equity(st);
-    const pnl    = eq - CFG.CAPITAL;
-    const wr     = st.trades.length > 0
-      ? (st.trades.filter(t => t.pnl > 0).length / st.trades.length * 100).toFixed(0) + '%'
-      : '—';
-    const capCls = pnl >= 0 ? 'green' : 'red';
-    const wrCls  = wr !== '—' && parseInt(wr) >= 50 ? 'green' : 'red';
-    const dot    = st.position ? ' <span class="blue">●</span>' : '';
-    const slbl   = symLabel(st.sym);
-    // Trend emoji based on last 3 trades
-    const recent  = st.trades.slice(-3);
-    const recentW = recent.filter(t => t.pnl > 0).length;
-    const trend   = st.trades.length === 0
-      ? '<span title="Sin operaciones" style="font-size:11px">💤</span>'
-      : recent.length >= 2 && recentW === recent.length
-        ? '<span title="Últimas operaciones ganadoras" style="font-size:11px">🔥</span>'
-        : recentW >= Math.ceil(recent.length / 2)
-          ? '<span title="Tendencia positiva" style="font-size:11px">✅</span>'
-          : recent.length >= 2 && recentW === 0
-            ? '<span title="Últimas operaciones perdedoras" style="font-size:11px">⚠️</span>'
-            : '<span title="Tendencia mixta" style="font-size:11px">➡️</span>';
-    return `
-      <div class="lb-row${isAct ? ' active' : ''}" onclick="setActive(${st.id})">
-        <span class="lb-rank">${medal}</span>
-        <div class="lb-info">
-          <div class="lb-name">${st.strat.name}${dot} ${trend}</div>
-          <div class="lb-cat">
-            <span class="chip chip-${st.strat.cat}">${st.strat.cat}</span>
-            <span class="chip chip-${slbl}">${slbl}</span>
-          </div>
-        </div>
-        <div>
-          <div class="lb-num ${capCls}">${fk(eq)}</div>
-          <div class="lb-sub2">${fpct((eq - CFG.CAPITAL) / CFG.CAPITAL * 100)}</div>
-        </div>
-        <div class="lb-num ${wrCls}">${wr}</div>
-        <div>
-          <div class="lb-num yellow">${st.score > 0 ? st.score.toFixed(1) : '—'}</div>
-          <div class="lb-sub2">${st.trades.length} ops</div>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function renderActive() {
-  if (!active) return;
-  const st   = active;
-  const lp   = priceMap[st.sym] || 0;
-  const eq   = equity(st);
-  const pnl  = eq - CFG.CAPITAL;
-  const pct  = pnl / CFG.CAPITAL * 100;
-  const wins  = st.trades.filter(t => t.pnl > 0).length;
-  const total = st.trades.length;
-  const wr    = total > 0 ? (wins / total * 100).toFixed(1) + '%' : '—';
-  const gw    = st.trades.filter(t => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
-  const gl    = Math.abs(st.trades.filter(t => t.pnl <= 0).reduce((s, t) => s + t.pnl, 0));
-  const pf    = gl > 0 ? (gw / gl).toFixed(2) : '∞';
-  const capCls = pnl >= 0 ? 'green' : 'red';
-  const wrCls  = wins / Math.max(total, 1) >= .5 ? 'green' : 'red';
-  const sigTxt = st.curSig === 1
-    ? '<span class="green">▲ COMPRA</span>'
-    : st.curSig === -1
-      ? '<span class="red">▼ VENTA</span>'
-      : '<span class="muted">— ESPERAR</span>';
-  const slbl = symLabel(st.sym);
-
-  document.getElementById('act-name').textContent  = '⭐ ' + st.strat.name;
-  document.getElementById('act-meta').innerHTML    = `Estrategia #1 de 50 · <span class="chip chip-${st.strat.cat}">${st.strat.cat}</span> · <span class="chip chip-${slbl}">${slbl}/USDT</span> · Rank #${st.rank}`;
-  document.getElementById('act-score').textContent = st.score > 0 ? st.score.toFixed(2) : '—';
-
-  document.getElementById('kpi-cap').innerHTML      = `<span class="${capCls}">${fk(eq)}</span>`;
-  document.getElementById('kpi-cap-sub').textContent = 'PnL: ' + fpct(pct);
-  document.getElementById('kpi-wr').innerHTML        = `<span class="${wrCls}">${wr}</span>`;
-  document.getElementById('kpi-wr-sub').textContent  = wins + 'W / ' + (total - wins) + 'L';
-  document.getElementById('kpi-pf').textContent      = pf;
-  document.getElementById('kpi-pf-sub').textContent  = total + ' operaciones';
-  document.getElementById('kpi-sig').innerHTML       = sigTxt;
-  document.getElementById('kpi-sig-sub').textContent = 'Señal actual';
-
-  // Position card
-  if (st.position) {
-    const p        = st.position;
-    const proceeds = p.qty * lp * (1 - CFG.FEE);
-    const signed   = p.side === 'long' ? 1 : -1;
-    const pnlU     = signed * (proceeds - p.cost);
-    const pnlP     = pnlU / p.margin * 100;
-    const pCls     = pnlU >= 0 ? 'green' : 'red';
-    const sideLbl  = p.side === 'long'
-      ? `<span style="color:#4ade80;font-weight:700">LONG</span>`
-      : `<span style="color:#f87171;font-weight:700">SHORT</span>`;
-    document.getElementById('pos-card-wrap').innerHTML = `
-      <div class="pos-card" style="margin-bottom:10px;grid-template-columns:repeat(6,1fr)">
-        <div>
-          <div class="pos-item-label">${sideLbl} <span style="color:#fbbf24;font-weight:700">${CFG.LEVERAGE}×</span></div>
-          <div class="pos-item-val white">${fPrice(p.entry)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">Notional ${fk(p.cost)}</div>
-        </div>
-        <div>
-          <div class="pos-item-label">Margen</div>
-          <div class="pos-item-val yellow">${fk(p.margin)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">Capital en riesgo</div>
-        </div>
-        <div>
-          <div class="pos-item-label">Stop Loss</div>
-          <div class="pos-item-val red">${fPrice(p.sl)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">Liq. ${fPrice(p.liq)}</div>
-        </div>
-        <div>
-          <div class="pos-item-label">Take Profit</div>
-          <div class="pos-item-val green">${fPrice(p.tp)}</div>
-        </div>
-        <div>
-          <div class="pos-item-label">PnL Flotante</div>
-          <div class="pos-item-val ${pCls}" style="font-size:16px">${fpct(pnlP)}</div>
-          <div style="font-size:9px;color:#475569;margin-top:2px">${pnlU >= 0 ? '+' : ''}${fp(pnlU)}</div>
-        </div>
-        <div>
-         2<div class="pos-item-label">Precio actual</div>
-          <div class="pos-item-val white">${fPrice(lp)}</div>
-        </div>
-      </div>`;
-  } else {
-    document.getElementById('pos-card-wrap').innerHTML = '';
-  }
-}
-
-function renderOpenPositions() {
-  const open    = states.filter(st => st.position !== null);
-  const titleEl = document.getElementById('openpos-title');
- 2const bodyEl  = document.getElementById('openpos-body');
-  titleEl.textContent = `📂 Posiciones abiertas en vivo — ${open.length}`;
-
-  if (open.length === 0) {
-    bodyEl.innerHTML = '<div class="openpos-empty">Sin posiciones abiertas</div>';
-    return;
-  }
-
-  // Sort by floating PnL desc
-  const sorted = [...open].sort((a, b) => {
-    const lpA    = priceMap[a.sym] || 0;
-    const lpB    = priceMap[b.sym] || 0;
-    const sgnA   = a.position.side === 'long' ? 1 : -1;
-    const sgnB   = b.position.side === 'long' ? 1 : -1;
-    const pnlA   = sgnA * ((a.position.qty * lpA * (1 - CFG.FEE)) - a.position.cost);
-    const pnlB   = sgnB * ((b.position.qty * lpB * (1 - CFG.FEE)) - b.position.cost);
-    return pnlB - pnlA;
-  });
-
-  bodyEl.innerHTML = sorted.map(st => {
-    const p      = st.position;
-    const lp     = priceMap[st.sym] || 0;
-    const signed = p.side === 'long' ? 1 : -1;
-    const pnlU   = signed * (p.qty * lp * (1 - CFG.FEE) - p.cost);
-    const pnlP   = pnlU / p.margin * 100;
-    const pCls   = pnlU >= 0 ? 'green' : 'red';
-    const isAct  = active && st.id === active.id;
-    const slbl   = symLabel(st.sym);
-    const sideChip = p.side === 'long'
-      ? `<span style="font-size:8px;color:#4ade80;font-weight:700;background:#052e16;padding:1px 4px;border-radius:3px">L</span>`
-      : `<span style="font-size:8px;color:#f87171;font-weight:700;background:#450a0a;padding:1px 4px;border-radius:3px">S</span>`;
-    // Progress bar:
-    // LONG:  0% = at SL (low), 100% = at TP (high)  → (lp - sl) / (tp - sl)
-    // SHORT: 0% = at SL (high), 100% = at TP (low)  → (sl - lp) / (sl - tp)
-    let pct;
-    if (p.side === 'long') {
-      const range = p.tp - p.sl;
-      pct = range > 0 ? Math.max(0, Math.min(100, ((lp - p.sl) / range) * 100)) : 50;
-    } else {
-      const range = p.sl - p.tp;
-      pct = range > 0 ? Math.max(0, Math.min(100, ((p.sl - lp) / range) * 100)) : 50;
-    }
-    const barClr = pct >= 50 ? '#4ade80' : '#f87171';
-    return `
-      <div class="openpos-row" style="display:block;padding:6px 0;border-bottom:1px solid #0f172a">
-        <div style="display:grid;grid-template-columns:160px 90px 90px 80px 80px 80px;align-items:center">
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-            ${sideChip}
-            <span class="${isAct ? 'blue' : 'white'}" style="font-weight:${isAct ? 700 : 400};margin-left:4px">${isAct ? '⭐ ' : ''}${st.strat.name} <span class="yellow" style="font-size:9px">${CFG.LEVERAGE}×</span></span>
-            <span class="chip chip-${slbl}" style="margin-left:4px;font-size:8px">${slbl}</span>
-  2       </span>
-          <span style="text-align:right;color:#94a3b8">${fPrice(p.entry)}</span>
-          <span style="text-align:right;font-weight:600">${fPrice(lp)}</span>
-          <span style="text-align:right" class="red">${fPrice(p.sl)}</span>
-          <span style="text-align:right" class="green">${fPrice(p.tp)}</span>
-          <span style="text-align:right;font-weight:700" class="${pCls}">${fpct(pnlP)}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:160px 1fr 80px;align-items:center;margin-top:3px;gap:6px">
-          <span style="font-size:9px;color:#475569">SL ←&nbsp; progreso hacia TP &nbsp;→</span>
-          <div class="pos-progress-wrap">
-            <div class="pos-progress-bar" style="width:${pct.toFixed(1)}%;background:${barClr}"></div>
-          </div>
-          <span style="font-size:9px;text-align:right;color:#475569">${pct.toFixed(0)}%</span>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function renderSigs() {
-  const buys    = states.filter(st => st.curSig ===  1);
-  const sells   = states.filter(st => st.curSig === -1);
-  const waiting = states.length - buys.length - sells.length;
-
-  // ── Title ──
-  document.getElementById('signals-title-el').innerHTML =
-    `📡 Señales en vivo &nbsp;·&nbsp; ` +
-    `<span class="green">▲ ${buys.length} comprando</span> &nbsp;·&nbsp; ` +
-    `<span class="red">▼ ${sells.length} vendiendo</span> &nbsp;·&nbsp; ` +
-    `<span class="muted">${waiting} esperando</span>`;
-
-  // ── Per-symbol summary strip ──
-  document.getElementById('sym-summary').innerHTML = CFG.SYMBOLS.map(sym => {
-    const b    = buys.filter(st => st.sym === sym).length;
-    const s    = sells.filter(st => st.sym === sym).length;
-    const slbl = symLabel(sym);
-    const bEl  = b > 0 ? `<span class="green">▲${b}</span>` : `<span class="muted">▲0</span>`;
- 2  const sEl  = s > 0 ? `<span class="red">▼${s}</span>`   : `<span class="muted">▼0</span>`;
-    return `<div class="sym-sum-item">
-      <span class="chip chip-${slbl}">${slbl}</span>
-      <div class="sym-sum-counts">${bEl}${sEl}</div>
-    </div>`;
-  }).join('');
-
-  // ── Card grid: only show active signals (hide HOLDs) ──
-  const activeSignals = [...buys, ...sells].sort((a, b) => {
-    if (a.curSig !== b.curSig) return b.curSig - a.curSig; // buys first
-    return a.rank - b.rank;
-  });
-
-  if (activeSignals.length === 0) {
-    document.getElementById('sig-grid').innerHTML =
-      `<div class="sig-empty">Las ${states.length} estrategias están esperando señal...</div>`;
-    return;
-  }
-
-  document.getElementById('sig-grid').innerHTML = activeSignals.map(st => {
-    const isBuy  = st.curSig === 1;
-    const cls    = isBuy ? 'buy' : 'sell';
-    const arrow  = isBuy ? '▲ COMPRAR' : '▼ VENDER';
-    const vc     = isBuy ? 'buy' : 'sell';
-    const star   = active && st.id === active.id ? '⭐ ' : '';
-    const slbl   = symLabel(st.sym);
-    const lp     = priceMap[st.sym] || 0;
-    return `
-      <div class="sig-card ${cls}">
-        <div class="sig-name">${star}${st.strat.name}</div>
-        <div class="sig-foot">
-          <div class="sig-val ${vc}">${arrow}</div>
-          <span class="chip chip-${slbl}" style="font-size:8px;padding:0 3px">${slbl}</span>
-        </div>
-        ${lp ? `<div style="font-size:9px;color:#475569;margin-top:3px">${fPrice(lp)}</div>` : ''}
-      </div>`;
-  }).join('');
-}
-
-function renderHist() {
-  const all  = states.flatMap(st => st.trades).sort((a, b) => b.time - a.time).slice(0, 20);
-  const wins = all.filter(t => t.pnl > 0).length;
-  const tpnl = all.reduce((s, t) => s + t.pnl, 0);
-  const wrPct = all.length > 0 ? (wins / all.length * 100).toFixed(0) : 0;
-  document.getElementById('hist-sum').innerHTML =
-    `<span class="${tpnl >= 0 ? 'green' : 'red'}">${fp(tpnl)}</span> &nbsp;·&nbsp; WR: <span class="${+wrPct >= 50 ? 'green' : 'red'}">${wrPct}%</span> &nbsp;·&nbsp; ${all.length} ops`;
-
-  document.getElementById('hist-body').innerHTML = all.map(t => {
-    const pCls = t.pnl >= 0 ? 'green' : 'red';
-    const rTxt = t.reason === 'tp' ? '✅ TP' : t.reason === 'sl' ? '❌ SL' : '↩ Exit';
-    const rCls = t.reason === 'tp' ? 'green' : t.reason === 'sl' ? 'red' : 'muted';
-    const slbl = symLabel(t.sym || 'BTC');
-    return `
-      <div class="hist-row">
-        <span class="muted">${fd(t.time)} ${ft(t.time)}</span>
-        <span>
-          <span class="white">${t.nm}</span>
-          <span class="chip chip-${slbl}" style="font-size:8px;padding:0 3px;margin-left:3px">${slbl}</span>
-        </span>
-        <span style="text-align:right">${fPrice(t.entry)}</span>
-        <span style="text-align:right">${fPrice(t.exit)}</span>
-        <span class="${pCls}" style="text-align:right;font-weight:600">${fpct(t.pct)}</span>
-        <span class="${rCls}" style="text-align:right">${rTxt}</span>
-      </div>`;
-  }).join('') || '<div class="muted" style="padding:12px 0;font-size:12px">Sin operaciones aún...</div>';
-}
-
-function renderHdr() {
-  const avgEq = states.reduce((s, st) => s + equity(st), 0) / states.length;
-  const pct   = (avgEq - CFG.CAPITAL) / CFG.CAPITAL * 100;
-  const cls   = pct >= 0 ? 'green' : 'red';
-  document.getElementById('h-eq').innerHTML =
-<html lang="es">
-<head>
-<meta charset="UTF-8">
 <title>Scalping Bot v2 &#x2014; 50 Estrategias &#xB7; Multi-Crypto</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1656,7 +205,7 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
- 2margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 .kpi {
   background: #1e293b; border-radius: 8px; padding: 10px 12px;
@@ -2067,7 +616,7 @@ const STRATS = [
   return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
 }},
 {id:3,name:'EMA 8/21',cat:'EMA',signal(i){
-  if(i<25)return 0;
+  if(i:25)return 0;
   const[a,b,pa,pb]=[C.e8[i],C.e21[i],C.e8[i-1],C.e21[i-1]];
   return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
 }},
@@ -2092,12 +641,12 @@ const STRATS = [
   return pa<=pb&&a>b?1:pa>=pb&&a<b?-1:0;
 }},
 {id:8,name:'EMA Triple 5/10/20',cat:'EMA',signal(i){
-  if(i<22)return 0;
+  if(i:22)return 0;
   const[e5,e10,e20,pe5,pe10]=[C.e5[i],C.e10[i],C.e20[i],C.e5[i-1],C.e10[i-1]];
-  return pe5<=pe10&&e5>e10&&e5>e20?1:pe10>=pe20&&e10<e20&&e20<e50?-1:0;
+  return pe5<=pe10&&e5>e10&&e5>e20?1:pe5>=pe10&&e5<e10&&e5<e20?-1:0;
 }},
 {id:9,name:'EMA Triple 8/13/21',cat:'EMA',signal(i){
-  if(i<23)return 0;
+  if(i:23)return 0;
   const[e8,e13,e21,pe8,pe13]=[C.e8[i],C.e13[i],C.e21[i],C.e8[i-1],C.e13[i-1]];
   return pe8<=pe13&&e8>e13&&e8>e21&&e13>e21?1:pe8>=pe13&&e8<e13&&e8<e21&&e13<e21?-1:0;
 }},
@@ -2181,7 +730,7 @@ const STRATS = [
   return m.m[i-1]<=m.s[i-1]&&m.m[i]>m.s[i]?1:m.m[i-1]>=m.s[i-1]&&m.m[i]<m.s[i]?-1:0;
 }},
 {id:22,name:'MACD 8/17/9 Fast',cat:'MACD',signal(i){
-  if(i<25)return 0;
+  if(i:25)return 0;
   const m=C.mf;
   return m.m[i-1]<=m.s[i-1]&&m.m[i]>m.s[i]?1:m.m[i-1]>=m.s[i-1]&&m.m[i]<m.s[i]?-1:0;
 }},
@@ -2231,7 +780,7 @@ const STRATS = [
   return 0;
 }},
 {id:29,name:'BB %B',cat:'BB',signal(i){
-  if(i<22)return 0;
+  if(i:22)return 0;
   const bb=C.bb[i],pbb=C.bb[i-1];if(!bb||!pbb)return 0;
   const bw=bb.u-bb.l||.001,pbw=pbb.u-pbb.l||.001;
   const pB=(C.cl[i]-bb.l)/bw,ppB=(C.cl[i-1]-pbb.l)/pbw;
@@ -2278,7 +827,7 @@ const STRATS = [
   return 0;
 }},
 {id:36,name:'Shooting Star',cat:'Candle',signal(i){
-  if(i<25)return 0;
+  if(i:25)return 0;
   const k=C.kl[i],pk=C.kl[i-1],e21=C.e21[i];
   if(isHammer(pk)&&k.c>pk.h&&k.c>e21)return 1;
   if(isShootStar(pk)&&k.c<pk.l)return -1;
@@ -2292,7 +841,7 @@ const STRATS = [
   return 0;
 }},
 {id:38,name:'Pin Bar',cat:'Candle',signal(i){
-  if(i<25)return 0;
+  if(i:25)return 0;
   const k=C.kl[i],e21=C.e21[i],e50=C.e50[i];
   if(isPinBull(k)&&k.l<e21&&k.c>e21)return 1;
   if(isPinBear(k)&&k.h>e21&&k.c<e21)return -1;
@@ -2310,7 +859,7 @@ const STRATS = [
   return isMornStar(C.kl[i-2],C.kl[i-1],C.kl[i])?1:0;
 }},
 {id:41,name:'Tweezer Bottom',cat:'Candle',signal(i){
-  if(i<25)return 0;
+  if(i:25)return 0;
   return isTweezBot(C.kl[i-1],C.kl[i])&&C.kl[i].c>C.e21[i]?1:0;
 }},
 {id:42,name:'Doji + Tendencia',cat:'Candle',signal(i){
@@ -2585,8 +1134,8 @@ async function priceTick() {
       if (!lp || !st.position) continue;
       const p = st.position;
       if (p.side === 'long') {
-        if (lp <= p.sl) { closePor(st, p.sl, 'sl'); renderAll(); }
-        else if (lp >= p.tp) { closePos(st, p.tp, 'tp'); renderAll(); }
+        if (lp <= p.sl) { closePos(st, p.sl, 'sl'); renderAll(); }
+        else if (lp >= p.tp) { closePor(st, p.tp, 'tp'); renderAll(); }
       } else {
         // SHORT: SL is above entry, TP is below entry
         if (lp >= p.sl) { closePos(st, p.sl, 'sl'); renderAll(); }
@@ -2993,7 +1542,7 @@ function renderHist() {
       <div class="hist-row">
         <span class="muted">${fd(t.time)} ${ft(t.time)}</span>
         <span>
-          <span class="white">${t.nm}</span>
+          <span class="white">${t.nn}</span>
           <span class="chip chip-${slbl}" style="font-size:8px;padding:0 3px;margin-left:3px">${slbl}</span>
         </span>
         <span style="text-align:right">${fPrice(t.entry)}</span>
@@ -3012,7 +1561,7 @@ function renderHdr() {
     `<span class="${cls}">${fk(avgEq)} promedio &nbsp; ${fpct(pct)}</span>`;
   if (startT) {
     const el = Math.floor((Date.now() - startT) / 1000);
-    const h = Math.floor(el / 3600), m = Math.floor(el % 3600 / 60), s = el % 60;
+    const h  = Math.floor(el / 3600), m = Math.floor(el % 3600 / 60), s = el % 60;
     document.getElementById('h-up').textContent =
       `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} corriendo`;
   }
